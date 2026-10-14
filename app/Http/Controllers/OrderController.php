@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
@@ -92,5 +93,50 @@ class OrderController extends Controller
         $order->load(['customer', 'items.product']);
 
         return view('orders.show', compact('order'));
+    }
+
+    public function updateTracking(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'tracking_number' => [
+                // nullable: resi boleh dikosongkan (diisi nanti kalau sudah ada).
+                'nullable',
+                'string',
+                'max:255',
+                // ignore: supaya order ini tidak dianggap "kembar" dengan dirinya sendiri
+                // kalau resi yang sama disimpan ulang.
+                Rule::unique('orders', 'tracking_number')->ignore($order->id),
+            ],
+        ]);
+
+        $order->update(['tracking_number' => $data['tracking_number']]);
+
+        return redirect()->route('orders.show', $order)
+            ->with('success', 'Nomor resi disimpan.');
+    }
+
+    public function updateShipping(Request $request, Order $order)
+    {
+        // boolean(): membaca nilai 1/0 dari kotak centang menjadi true/false.
+        $shipped = $request->boolean('shipped');
+
+        $order->update([
+            'shipping_status' => $shipped ? 'sudah' : 'belum',
+        ]);
+
+        return redirect()->route('orders.show', $order)
+            ->with('success', 'Status pengiriman diperbarui.');
+    }
+
+    public function updatePayment(Request $request, Order $order)
+    {
+        $paid = $request->boolean('paid');
+
+        $order->update([
+            'payment_status' => $paid ? 'sudah' : 'belum',
+        ]);
+
+        return redirect()->route('orders.show', $order)
+            ->with('success', 'Status pembayaran diperbarui.');
     }
 }
