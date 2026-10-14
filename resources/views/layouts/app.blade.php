@@ -16,7 +16,11 @@
 </head>
 <body>
     <h1>Sizan Jastip</h1>
-    <nav><a href="{{ route('products.index') }}">Produk</a></nav>
+    <nav>
+        <a href="{{ route('products.index') }}">Produk</a> |
+    <a href="{{ route('customers.index') }}">Customer</a>
+</nav>
+<a href="{{ route('products.index') }}">Produk</a></nav>
     <hr>
 
     @if (session('success'))
