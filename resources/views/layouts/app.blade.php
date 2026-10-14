@@ -18,9 +18,9 @@
     <h1>Sizan Jastip</h1>
     <nav>
         <a href="{{ route('products.index') }}">Produk</a> |
-    <a href="{{ route('customers.index') }}">Customer</a>
-</nav>
-<a href="{{ route('products.index') }}">Produk</a></nav>
+        <a href="{{ route('customers.index') }}">Customer</a> |
+        <a href="{{ route('orders.index') }}">Order</a>
+    </nav>
     <hr>
 
     @if (session('success'))
