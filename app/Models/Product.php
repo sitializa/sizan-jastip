@@ -19,4 +19,16 @@ class Product extends Model
     protected $casts = [
         'expired_date' => 'date',
     ];
+
+    // Sisa hari sampai expired: positif = masih ada waktu, 0 = hari ini,
+    // negatif = sudah lewat. Null kalau produk tidak punya tanggal expired.
+    // Dipanggil di view sebagai $product->days_left
+    public function getDaysLeftAttribute(): ?int
+    {
+        if (! $this->expired_date) {
+            return null;
+        }
+
+        return (int) today()->diffInDays($this->expired_date, false);
+    }
 }

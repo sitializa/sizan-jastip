@@ -22,7 +22,8 @@
         <a href="{{ route('customers.index') }}">Customer</a> |
         <a href="{{ route('orders.index') }}">Order</a> |
         <a href="{{ route('suppliers.index') }}">Supplier</a> |
-        <a href="{{ route('purchases.index') }}">Pembelian</a>
+        <a href="{{ route('purchases.index') }}">Pembelian</a> |
+        <a href="{{ route('expired.index') }}">Expired</a>
     </nav>
     <hr>
 
