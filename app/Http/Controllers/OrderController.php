@@ -69,7 +69,9 @@ class OrderController extends Controller
                 'order_date'  => $data['order_date'],
             ]);
 
-            // 3. Simpan item (harga disalin dari server) dan kurangi stok
+            // 3. Simpan item dan kurangi stok.
+            //    price dan cost_price disalin dari server (foto saat order dibuat),
+            //    supaya laporan lama tidak berubah kalau harga/modal produk berubah.
             foreach ($wanted as $productId => $qty) {
                 $product = $products[$productId];
 
@@ -77,6 +79,7 @@ class OrderController extends Controller
                     'product_id' => $product->id,
                     'qty'        => $qty,
                     'price'      => $product->sell_price,
+                    'cost_price' => $product->cost_price,
                 ]);
 
                 $product->decrement('stock', $qty);

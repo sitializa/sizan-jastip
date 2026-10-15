@@ -68,7 +68,7 @@ class PurchaseController extends Controller
         $totalQty = collect($data['items'])->sum('qty');
         $sharePerPcs = $extraCost / $totalQty;
 
-        // Satu paket: pembelian, produk baru, item, dan stok berhasil semua atau batal semua.
+        // Satu paket: pembelian, produk baru, item, stok, dan modal berhasil semua atau batal semua.
         $purchase = DB::transaction(function () use ($data, $extraCost, $sharePerPcs) {
             $purchase = Purchase::create([
                 'supplier_id'   => $data['supplier_id'],
@@ -93,8 +93,7 @@ class PurchaseController extends Controller
                     }
 
                     // Produk baru langsung masuk ke tabel products dengan stok = qty yang dibeli.
-                    // sell_price diisi 0 dulu karena kolomnya wajib ada; harga jual yang
-                    // sebenarnya diisi nanti lewat halaman Produk.
+                    // sell_price diisi 0 dulu; harga jual diisi nanti lewat halaman Produk.
                     $product = Product::create([
                         'name'         => $row['new_name'],
                         'brand'        => $row['new_brand'] ?? null,
@@ -109,8 +108,20 @@ class PurchaseController extends Controller
                 } else {
                     $productId = $row['product_id'];
 
-                    // Produk lama: stok = stok + qty, dikerjakan langsung di database.
-                    Product::whereKey($productId)->increment('stock', $row['qty']);
+                    // Kunci baris produk, lalu baca stok dan modal LAMA (sebelum stok ditambah).
+                    $product = Product::whereKey($productId)->lockForUpdate()->first();
+
+                    // Modal baru = rata-rata tertimbang, dibulatkan ke rupiah.
+                    // Kalau stok lama 0, hasilnya otomatis sama dengan net_price.
+                    $newStock = $product->stock + $row['qty'];
+                    $newCost  = (int) round(
+                        ($product->stock * $product->cost_price + $row['qty'] * $netPrice) / $newStock
+                    );
+
+                    $product->update([
+                        'stock'      => $newStock,
+                        'cost_price' => $newCost,
+                    ]);
                 }
 
                 $purchase->items()->create([
@@ -125,7 +136,7 @@ class PurchaseController extends Controller
         });
 
         return redirect()->route('purchases.show', $purchase)
-            ->with('success', 'Pembelian dicatat dan stok sudah bertambah.');
+            ->with('success', 'Pembelian dicatat, stok dan harga modal sudah diperbarui.');
     }
 
     public function show(Purchase $purchase)

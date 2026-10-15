@@ -24,6 +24,7 @@
         <a href="{{ route('suppliers.index') }}">Supplier</a> |
         <a href="{{ route('purchases.index') }}">Pembelian</a> |
         <a href="{{ route('expired.index') }}">Expired</a>
+        | <a href="{{ route('reports.profit') }}">Laporan</a>
     </nav>
     <hr>
 
