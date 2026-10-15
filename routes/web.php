@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExpiredProductController;
 use App\Http\Controllers\OrderController;
@@ -13,7 +14,8 @@ Route::get('/', function () {
 });
 
 Route::get('expired', ExpiredProductController::class)->name('expired.index');
-  Route::get('/laporan', [ReportController::class, 'profit'])->name('reports.profit');
+Route::get('/laporan', [ReportController::class, 'profit'])->name('reports.profit');
+Route::get('/orders/{order}/invoice', [InvoiceController::class, 'show'])->name('orders.invoice');
 Route::resource('products', ProductController::class)->except('show');
 Route::resource('customers', CustomerController::class)->except('show');
 Route::resource('suppliers', SupplierController::class)->except('show');

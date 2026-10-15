@@ -5,6 +5,8 @@
 @section('content')
     <h2>Order #{{ $order->id }}</h2>
 
+    <p><a href="{{ route('orders.invoice', $order) }}" target="_blank">Cetak Invoice</a></p>
+
     <div style="margin: 16px 0;">
         Customer: {{ $order->customer->phone }} {{ $order->customer->name ? '(' . $order->customer->name . ')' : '' }}<br>
         Tanggal: {{ $order->order_date->format('d/m/Y') }}
