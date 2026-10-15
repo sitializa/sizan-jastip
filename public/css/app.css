@@ -1,0 +1,138 @@
+:root {
+    --pink-50: #fffafc;
+    --pink-100: #fdeef4;
+    --pink-200: #f6d5e3;
+    --pink-300: #f0b3cc;
+    --pink-400: #e9809f;
+    --pink-500: #c9507f;
+    --text: #3f3339;
+    --text-soft: #7d6b74;
+    --white: #ffffff;
+    --head-bg: #f1edef;
+    --line: #e3dadf;
+    --grid: #cfc2c9;
+    --zebra: #faf6f8;
+    --ok-bg: #e6f6ec;
+    --ok-text: #1e6b3c;
+    --error: #b8325a;
+    --error-bg: #fbe7ee;
+    --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--pink-50);
+    color: var(--text);
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    line-height: 1.5;
+}
+
+h1 { color: var(--pink-500); margin: 0 0 12px; }
+h2 { color: var(--text); margin: 20px 0 12px; }
+h3 { color: var(--text); }
+
+a { color: var(--pink-500); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+
+/* Menu atas */
+.menu { display: flex; flex-wrap: wrap; gap: 8px; }
+.menu a {
+    padding: 6px 14px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--text-soft);
+}
+.menu a:hover { background: var(--pink-100); text-decoration: none; }
+.menu a.active {
+    background: var(--pink-400);
+    border-color: var(--pink-400);
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* Pesan sukses dan gagal */
+.alert {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+}
+.alert-error {
+    background: var(--error-bg);
+    color: var(--error);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+}
+.error { color: var(--error); font-size: 14px; margin-top: 4px; }
+
+/* Tabel: grid tegas (garis antar kolom dan baris), baris selang-seling */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--grid);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--grid);
+    border-right: 1px solid var(--grid);
+}
+th:last-child, td:last-child { border-right: 0; }
+tr:last-child td { border-bottom: 0; }
+
+th {
+    background: var(--head-bg);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+}
+thead th { border-bottom: 2px solid var(--pink-300); }
+tbody tr:nth-child(even) { background: var(--zebra); }
+tbody tr:hover { background: var(--pink-100); }
+tfoot th { background: var(--head-bg); border-top: 2px solid var(--pink-300); }
+
+/* Form */
+label { display: block; margin-top: 12px; font-weight: 600; color: var(--text-soft); }
+input, select, textarea {
+    padding: 8px 10px;
+    width: 100%;
+    max-width: 360px;
+    border: 1px solid #cfc2c9;
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+}
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--pink-200);
+    border-color: var(--pink-400);
+}
+input[type="checkbox"] { width: auto; }
+
+button {
+    background: var(--pink-400);
+    color: var(--white);
+    border: 0;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+}
+button:hover { background: var(--pink-500); }
+
+/* Pagination bawaan Laravel: perkecil ikon panahnya */
+nav[role="navigation"] { margin-top: 12px; font-size: 14px; }
+nav[role="navigation"] svg { width: 16px; height: 16px; }

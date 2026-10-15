@@ -5,17 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Invoice INV-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; color: #111; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; }
-        h1 { margin: 0; }
-        table { border-collapse: collapse; width: 100%; margin-top: 16px; }
-        th, td { border: 1px solid #999; padding: 8px; text-align: left; }
-        .right { text-align: right; }
-        .badge { display: inline-block; padding: 4px 10px; border: 2px solid #15803d; color: #15803d; font-weight: bold; }
-        .badge.belum { border-color: #b91c1c; color: #b91c1c; }
-        .actions { margin-bottom: 16px; }
+        :root {
+            --pink-50: #fffafc;
+            --pink-100: #fdeef4;
+            --pink-300: #f0b3cc;
+            --pink-400: #e9809f;
+            --pink-500: #c9507f;
+            --text: #3f3339;
+            --text-soft: #7d6b74;
+            --head-bg: #f1edef;
+            --grid: #cfc2c9;
+            --ok: #1e6b3c;
+            --ok-bg: #e6f6ec;
+            --bad: #b8325a;
+            --bad-bg: #fbe7ee;
+        }
 
-        /* Hanya berlaku saat dicetak atau disimpan jadi PDF */
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            max-width: 720px;
+            margin: 24px auto;
+            padding: 0 16px;
+            color: var(--text);
+            background: #fff;
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .actions { margin-bottom: 16px; }
+        .actions a { color: var(--pink-500); text-decoration: none; margin-left: 8px; }
+        .actions button {
+            background: var(--pink-400); color: #fff; border: 0;
+            padding: 7px 14px; border-radius: 8px; font: inherit; cursor: pointer;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding-bottom: 12px; border-bottom: 3px solid var(--pink-300);
+        }
+        h1 { margin: 0; color: var(--pink-500); }
+        .title { color: var(--text-soft); letter-spacing: 2px; }
+        .right { text-align: right; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; margin-top: 4px;
+            border-radius: 999px; font-weight: bold; font-size: 13px;
+            color: var(--ok); background: var(--ok-bg);
+        }
+        .badge.belum { color: var(--bad); background: var(--bad-bg); }
+
+        table {
+            border-collapse: collapse; width: 100%; margin-top: 16px;
+            border: 1px solid var(--grid);
+        }
+        th, td { border: 1px solid var(--grid); padding: 8px 10px; text-align: center; }
+        td:first-child, thead th:first-child { text-align: left; }
+        thead th { background: var(--pink-100); color: var(--text); border-bottom: 2px solid var(--pink-300); }
+        tbody tr:nth-child(even) { background: var(--pink-50); }
+        tfoot th { background: var(--head-bg); }
+
+        .payment {
+            margin-top: 20px; padding: 12px 16px;
+            background: var(--pink-50); border: 1px solid var(--pink-300);
+            border-radius: 10px; font-size: 14px;
+            display: flex; gap: 20px; align-items: flex-start; justify-content: space-between;
+        }
+        .payment .label { font-style: italic; color: var(--text-soft); margin-bottom: 4px; }
+        .payment .list div { margin-bottom: 2px; }
+        .payment .fee { margin-top: 8px; font-size: 13px; color: var(--pink-500); font-weight: 600; }
+        .payment .qris { text-align: center; flex-shrink: 0; }
+        .payment .qris img { width: 200px; height: auto; display: block; border: 1px solid var(--pink-300); }
+
+        .thanks { margin-top: 24px; text-align: center; color: var(--pink-500); }
+
         @media print {
             .actions { display: none; }
             body { margin: 0; max-width: none; }
@@ -30,8 +95,8 @@
 
     <div class="header">
         <div>
-            <h1>Sizan Jastip</h1>
-            <div>INVOICE</div>
+            <h1>{{ config('shop.name') }}</h1>
+            <div class="title">INVOICE</div>
         </div>
         <div class="right">
             <strong>INV-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</strong><br>
@@ -52,25 +117,25 @@
         <thead>
             <tr>
                 <th>Produk</th>
-                <th class="right">Qty</th>
-                <th class="right">Harga</th>
-                <th class="right">Subtotal</th>
+                <th>Qty</th>
+                <th>Harga</th>
+                <th>Subtotal</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($order->items as $item)
                 <tr>
                     <td>{{ $item->product->name }}{{ $item->product->brand ? ' (' . $item->product->brand . ')' : '' }}</td>
-                    <td class="right">{{ $item->qty }}</td>
-                    <td class="right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
-                    <td class="right">Rp {{ number_format($item->qty * $item->price, 0, ',', '.') }}</td>
+                    <td>{{ $item->qty }}</td>
+                    <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->qty * $item->price, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="3" class="right">Total</th>
-                <th class="right">Rp {{ number_format($total, 0, ',', '.') }}</th>
+                <th colspan="3">Total</th>
+                <th>Rp {{ number_format($total, 0, ',', '.') }}</th>
             </tr>
         </tfoot>
     </table>
@@ -80,6 +145,35 @@
         No. resi: {{ $order->tracking_number ?? '-' }}
     </p>
 
-    <p style="margin-top: 32px;">Terima kasih sudah belanja di Sizan Jastip.</p>
+    @php
+        // Cari gambar QRIS di public/images (png, jpg, atau jpeg).
+        $qris = collect(['png', 'jpg', 'jpeg'])
+            ->first(fn ($ext) => file_exists(public_path("images/qris.$ext")));
+    @endphp
+
+    <div class="payment">
+        <div class="list">
+            <div class="label">PAYMENT :</div>
+            @foreach (config('shop.accounts') as $acc)
+                @if ($acc['number'])
+                    <div>
+                        {{ $acc['bank'] }} {{ $acc['number'] }}
+                        @if ($acc['name']) a.n. {{ $acc['name'] }} @endif
+                        @if ($acc['note']) ({{ $acc['note'] }}) @endif
+                    </div>
+                @endif
+            @endforeach
+            <div>QRIS (scan di samping)</div>
+            <div class="fee">{{ config('shop.fee_note') }}</div>
+        </div>
+
+        @if ($qris)
+            <div class="qris">
+                <img src="{{ asset("images/qris.$qris") }}" alt="QRIS">
+            </div>
+        @endif
+    </div>
+
+    <p class="thanks">Terima kasih sudah belanja di {{ config('shop.name') }}.</p>
 </body>
 </html>
