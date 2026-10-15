@@ -3,6 +3,8 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,6 +13,8 @@ Route::get('/', function () {
 
 Route::resource('products', ProductController::class)->except('show');
 Route::resource('customers', CustomerController::class)->except('show');
+Route::resource('suppliers', SupplierController::class)->except('show');
+Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
 Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
 Route::patch('orders/{order}/tracking', [OrderController::class, 'updateTracking'])->name('orders.tracking');
 Route::patch('orders/{order}/shipping', [OrderController::class, 'updateShipping'])->name('orders.shipping');

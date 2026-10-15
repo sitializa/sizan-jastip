@@ -23,7 +23,8 @@ class OrderController extends Controller
     {
         return view('orders.create', [
             'customers' => Customer::orderBy('phone')->get(),
-            'products'  => Product::where('stock', '>', 0)->orderBy('name')->get(),
+            // Hanya produk yang stoknya ada dan harga jualnya sudah diisi.
+            'products'  => Product::where('stock', '>', 0)->where('sell_price', '>', 0)->orderBy('name')->get(),
         ]);
     }
 
