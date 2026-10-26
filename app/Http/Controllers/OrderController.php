@@ -12,12 +12,28 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-    public function index()
-    {
-        $orders = Order::with(['customer', 'items'])->latest()->paginate(10);
+   public function index(Request $request)
+{
+    $search = trim((string) $request->query('q', ''));
 
-        return view('orders.index', compact('orders'));
-    }
+    $orders = Order::with(['customer', 'items'])
+        // whereHas = "hanya order yang customer-nya memenuhi syarat ini".
+        // Nama ATAU nomor HP dibungkus satu kelompok supaya orWhere tidak bocor.
+        ->when($search !== '', function ($query) use ($search) {
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        })
+        ->latest()
+        ->paginate(10)
+        ->withQueryString(); // supaya kata kunci ikut terbawa saat pindah halaman
+
+    return view('orders.index', [
+        'orders' => $orders,
+        'search' => $search,
+    ]);
+}
 
     public function create()
     {
