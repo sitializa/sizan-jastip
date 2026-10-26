@@ -8,11 +8,12 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
+  use App\Http\Controllers\DailySalesController;
 
 Route::get('/', function () {
     return redirect()->route('products.index');
 });
-
+Route::get('/penjualan', [DailySalesController::class, 'index'])->name('sales.daily');
 Route::get('expired', ExpiredProductController::class)->name('expired.index');
 Route::get('/laporan', [ReportController::class, 'profit'])->name('reports.profit');
 Route::get('/orders/{order}/invoice', [InvoiceController::class, 'show'])->name('orders.invoice');
