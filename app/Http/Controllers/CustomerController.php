@@ -54,7 +54,7 @@ class CustomerController extends Controller
     {
         return $request->validate([
             'phone' => [
-                'required',
+                'nullable',
                 'string',
                 'max:20',
                 Rule::unique('customers', 'phone')->ignore($customer?->id),

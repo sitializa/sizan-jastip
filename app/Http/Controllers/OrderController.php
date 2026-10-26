@@ -22,7 +22,7 @@ class OrderController extends Controller
     public function create()
     {
         return view('orders.create', [
-            'customers' => Customer::orderBy('phone')->get(),
+            'customers' => Customer::orderBy('name')->orderBy('phone')->get(),
             // Hanya produk yang stoknya ada dan harga jualnya sudah diisi.
             'products'  => Product::where('stock', '>', 0)->where('sell_price', '>', 0)->orderBy('name')->get(),
         ]);
@@ -31,11 +31,25 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'customer_id'        => ['required', 'exists:customers,id'],
+            // customer_id berisi id customer lama, atau kata "new" untuk customer baru.
+            'customer_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if ($value !== 'new' && ! Customer::whereKey($value)->exists()) {
+                        $fail('Customer yang dipilih tidak valid.');
+                    }
+                },
+            ],
+            'new_customer_name'  => ['required_if:customer_id,new', 'nullable', 'string', 'max:255'],
+            'new_customer_phone' => ['nullable', 'string', 'max:20', Rule::unique('customers', 'phone')],
+
             'order_date'         => ['required', 'date'],
             'items'              => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.qty'        => ['required', 'integer', 'min:1'],
+        ], [], [
+            'new_customer_name'  => 'nama customer baru',
+            'new_customer_phone' => 'no. HP customer baru',
         ]);
 
         // Kalau produk yang sama dipilih di dua baris, jumlahnya digabung.
@@ -45,8 +59,6 @@ class OrderController extends Controller
 
         // Semua langkah di dalam satu paket: berhasil semua atau batal semua.
         $order = DB::transaction(function () use ($data, $wanted) {
-            // lockForUpdate: produk "dikunci" supaya dua order bersamaan
-            // tidak bisa sama-sama mengambil stok terakhir.
             $products = Product::whereIn('id', $wanted->keys())
                 ->lockForUpdate()
                 ->get()
@@ -63,15 +75,22 @@ class OrderController extends Controller
                 }
             }
 
-            // 2. Simpan order
+            // 2. Customer: pakai yang dipilih, atau buat baru dari nama (dan no. HP kalau diisi).
+            $customerId = $data['customer_id'] === 'new'
+                ? Customer::create([
+                    'name'  => $data['new_customer_name'],
+                    'phone' => $data['new_customer_phone'] ?? null,
+                ])->id
+                : $data['customer_id'];
+
+            // 3. Simpan order
             $order = Order::create([
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $customerId,
                 'order_date'  => $data['order_date'],
             ]);
 
-            // 3. Simpan item dan kurangi stok.
-            //    price dan cost_price disalin dari server (foto saat order dibuat),
-            //    supaya laporan lama tidak berubah kalau harga/modal produk berubah.
+            // 4. Simpan item dan kurangi stok.
+            //    price dan cost_price disalin dari server (foto saat order dibuat).
             foreach ($wanted as $productId => $qty) {
                 $product = $products[$productId];
 
