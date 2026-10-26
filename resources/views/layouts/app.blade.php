@@ -15,6 +15,7 @@
         <a href="{{ route('suppliers.index') }}" @class(['active' => request()->routeIs('suppliers.*')])>Supplier</a>
         <a href="{{ route('purchases.index') }}" @class(['active' => request()->routeIs('purchases.*')])>Pembelian</a>
         <a href="{{ route('expired.index') }}" @class(['active' => request()->routeIs('expired.*')])>Expired</a>
+        <a href="{{ route('sales.daily') }}" @class(['active' => request()->routeIs('sales.*')])>Penjualan</a>
         <a href="{{ route('reports.profit') }}" @class(['active' => request()->routeIs('reports.*')])>Laporan</a>
     </nav>
     <hr>
