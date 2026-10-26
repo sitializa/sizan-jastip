@@ -66,15 +66,24 @@
         <a href="{{ route('orders.index') }}">Batal</a>
     </form>
 
+    @php
+        // Data dihitung di sini supaya @json di bawah cukup menerima satu variabel.
+        $productList = $products->map(function ($p) {
+            return [
+                'id'    => $p->id,
+                'label' => $p->name . ' (stok ' . $p->stock . ', Rp ' . number_format($p->sell_price, 0, ',', '.') . ')',
+            ];
+        })->values();
+
+        $initialRows = array_values(old('items', [['product_id' => '', 'qty' => 1]]));
+    @endphp
+
     <script>
         // Daftar produk dikirim dari server (hanya yang stoknya ada dan harga jualnya terisi).
-        const products = @json($products->map(fn ($p) => [
-            'id'    => $p->id,
-            'label' => $p->name . ' (stok ' . $p->stock . ', Rp ' . number_format($p->sell_price, 0, ',', '.') . ')',
-        ])->values());
+        const products = @json($productList);
 
         // Baris awal: isian lama kalau form ditolak, atau satu baris kosong.
-        const initialRows = @json(array_values(old('items', [['product_id' => '', 'qty' => 1]])));
+        const initialRows = @json($initialRows);
 
         const rows = document.getElementById('rows');
         let index = 0;
