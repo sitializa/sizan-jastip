@@ -6,6 +6,28 @@
     <h2>Daftar Produk</h2>
     <a href="{{ route('products.create') }}">+ Tambah Produk</a>
 
+    {{-- Form pencarian: method GET supaya kata kuncinya muncul di alamat URL --}}
+    <form method="GET" action="{{ route('products.index') }}" style="margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <input type="text" name="q" value="{{ $search }}" placeholder="Cari nama atau brand..." style="max-width: 280px;">
+
+        <select name="kategori" style="width: auto;">
+            <option value="">Semua kategori</option>
+            @foreach ($categories as $cat)
+                <option value="{{ $cat }}" @selected($category === $cat)>{{ ucfirst($cat) }}</option>
+            @endforeach
+        </select>
+
+        <button type="submit">Cari</button>
+
+        @if ($search !== '' || $category)
+            <a href="{{ route('products.index') }}">Reset</a>
+        @endif
+    </form>
+
+    @if ($search !== '' || $category)
+        <p>Ditemukan {{ $products->total() }} produk.</p>
+    @endif
+
     <table style="margin-top: 12px;">
         <thead>
             <tr>
@@ -40,7 +62,11 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8">Belum ada produk.</td></tr>
+                <tr>
+                    <td colspan="8">
+                        {{ ($search !== '' || $category) ? 'Tidak ada produk yang cocok.' : 'Belum ada produk.' }}
+                    </td>
+                </tr>
             @endforelse
         </tbody>
     </table>
