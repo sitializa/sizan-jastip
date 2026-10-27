@@ -11,30 +11,54 @@ class CleanUnpaidOrders extends Command
 {
     protected $signature = 'orders:clean-unpaid';
 
-    protected $description = 'Hapus order yang belum dibayar lebih dari 24 jam dan kembalikan stoknya';
+    protected $description = 'Arsipkan order yang belum dibayar dan belum dikirim lebih dari 24 jam, lalu kembalikan stoknya';
 
     public function handle(): int
     {
-        $expired = Order::with('items')
+        $batas = now()->subHours(24);
+
+        // Umur dihitung dari kapan terakhir dipulihkan, atau dari dibuat kalau belum pernah dipulihkan.
+        $orders = Order::query()
             ->where('payment_status', 'belum')
             ->where('shipping_status', 'belum')
-            ->where('created_at', '<=', now()->subHours(24))
+            ->where(function ($q) use ($batas) {
+                $q->where('restored_at', '<', $batas)
+                  ->orWhere(function ($q2) use ($batas) {
+                      $q2->whereNull('restored_at')->where('created_at', '<', $batas);
+                  });
+            })
             ->get();
 
-        foreach ($expired as $order) {
-            // Satu order = satu paket: stok balik dan order terhapus, atau batal dua-duanya.
-            DB::transaction(function () use ($order) {
-                // 1. Kembalikan stok dulu (item masih ada).
-                foreach ($order->items as $item) {
-                    Product::whereKey($item->product_id)->increment('stock', $item->qty);
+        $jumlah = 0;
+
+        foreach ($orders as $order) {
+            DB::transaction(function () use ($order, &$jumlah) {
+                // Baca ulang dengan kunci: bisa jadi order baru saja dibayar.
+                $fresh = Order::lockForUpdate()->find($order->id);
+
+                if (! $fresh || $fresh->payment_status !== 'belum' || $fresh->shipping_status !== 'belum') {
+                    return;
                 }
 
-                // 2. Baru hapus order (order_items ikut terhapus lewat cascade).
-                $order->delete();
+                $items = $fresh->items()->get();
+
+                $products = Product::whereIn('id', $items->pluck('product_id'))
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($items as $item) {
+                    $products[$item->product_id]->increment('stock', $item->qty);
+                }
+
+                $fresh->update(['delete_reason' => 'otomatis']);
+                $fresh->delete(); // soft delete = pindah ke Arsip
+
+                $jumlah++;
             });
         }
 
-        $this->info("{$expired->count()} order belum dibayar dihapus dan stoknya dikembalikan.");
+        $this->info("{$jumlah} order diarsipkan dan stoknya dikembalikan.");
 
         return self::SUCCESS;
     }

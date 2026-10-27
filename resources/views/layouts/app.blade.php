@@ -13,6 +13,7 @@
         <a href="{{ route('recap.products') }}" @class(['active' => request()->routeIs('recap.*')])>Rekap</a>
         <a href="{{ route('customers.index') }}" @class(['active' => request()->routeIs('customers.*')])>Customer</a>
         <a href="{{ route('orders.index') }}" @class(['active' => request()->routeIs('orders.*')])>Order</a>
+        <a href="{{ route('archive.index') }}" @class(['active' => request()->routeIs('archive.*')])>Arsip</a>
         <a href="{{ route('suppliers.index') }}" @class(['active' => request()->routeIs('suppliers.*')])>Supplier</a>
         <a href="{{ route('purchases.index') }}" @class(['active' => request()->routeIs('purchases.*')])>Pembelian</a>
         <a href="{{ route('expired.index') }}" @class(['active' => request()->routeIs('expired.*')])>Expired</a>

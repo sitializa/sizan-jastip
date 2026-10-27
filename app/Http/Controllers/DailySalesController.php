@@ -23,6 +23,7 @@ class DailySalesController extends Controller
         $rows = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->whereBetween('orders.order_date', [$awal->toDateString(), $akhir->toDateString()])
+            ->whereNull('orders.deleted_at')
             ->selectRaw("
                 orders.order_date as tanggal,
                 COUNT(DISTINCT orders.id) as jumlah_order,
@@ -45,6 +46,7 @@ class DailySalesController extends Controller
         $hariIni = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->whereDate('orders.order_date', today())
+            ->whereNull('orders.deleted_at')
             ->selectRaw("
                 COUNT(DISTINCT orders.id) as jumlah_order,
                 COALESCE(SUM(order_items.qty), 0) as jumlah_pcs,

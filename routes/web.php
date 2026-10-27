@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\CustomerController;
@@ -27,3 +28,6 @@ Route::patch('orders/{order}/tracking', [OrderController::class, 'updateTracking
 Route::patch('orders/{order}/shipping', [OrderController::class, 'updateShipping'])->name('orders.shipping');
   Route::get('/rekap-produk', [ProductRecapController::class, 'index'])->name('recap.products');
 Route::patch('orders/{order}/payment', [OrderController::class, 'updatePayment'])->name('orders.payment');
+  Route::get('/arsip', [ArchiveController::class, 'index'])->name('archive.index');
+  Route::post('/arsip/{id}/pulihkan', [ArchiveController::class, 'restore'])->name('archive.restore');
+  Route::delete('/arsip/{id}', [ArchiveController::class, 'destroy'])->name('archive.destroy');

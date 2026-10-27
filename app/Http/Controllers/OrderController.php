@@ -143,7 +143,7 @@ class OrderController extends Controller
 
         $id = $order->id;
 
-        // Satu paket: stok kembali dan order terhapus berhasil semua atau batal semua.
+        // Satu paket: stok kembali dan order pindah ke Arsip berhasil semua atau batal semua.
         DB::transaction(function () use ($order) {
             $items = $order->items()->get();
 
@@ -156,21 +156,23 @@ class OrderController extends Controller
                 $products[$item->product_id]->increment('stock', $item->qty);
             }
 
-            // order_items ikut terhapus otomatis (cascadeOnDelete di migration).
-            $order->delete();
+            $order->update(['delete_reason' => 'manual']);
+            $order->delete(); // pindah ke Arsip, bisa dipulihkan
         });
 
         return redirect()->route('orders.index')
-            ->with('success', "Order #{$id} dihapus dan stok produk dikembalikan.");
+            ->with('success', "Order #{$id} dipindah ke Arsip dan stok produk dikembalikan.");
     }
 
     public function updateTracking(Request $request, Order $order)
     {
         $data = $request->validate([
             'tracking_number' => [
+                // nullable: resi boleh dikosongkan (diisi nanti kalau sudah ada).
                 'nullable',
                 'string',
                 'max:255',
+                // ignore: supaya order ini tidak dianggap "kembar" dengan dirinya sendiri.
                 Rule::unique('orders', 'tracking_number')->ignore($order->id),
             ],
         ]);
@@ -183,6 +185,7 @@ class OrderController extends Controller
 
     public function updateShipping(Request $request, Order $order)
     {
+        // boolean(): membaca nilai 1/0 dari kotak centang menjadi true/false.
         $shipped = $request->boolean('shipped');
 
         $order->update([

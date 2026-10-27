@@ -9,14 +9,17 @@ class ProductRecapController extends Controller
 {
     public function index()
     {
-        // Jumlah terjual dan omzet per produk, dihitung dari semua order_items.
+        // Jumlah terjual dan omzet per produk, dihitung dari order_items.
+        // Order yang sudah diarsipkan (deleted_at terisi) tidak ikut dihitung.
         $sold = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereNull('orders.deleted_at')
             ->select(
-                'product_id',
-                DB::raw('SUM(qty) as terjual'),
-                DB::raw('SUM(qty * price) as omzet')
+                'order_items.product_id',
+                DB::raw('SUM(order_items.qty) as terjual'),
+                DB::raw('SUM(order_items.qty * order_items.price) as omzet')
             )
-            ->groupBy('product_id');
+            ->groupBy('order_items.product_id');
 
         // leftJoin: produk yang belum pernah terjual tetap ikut, dengan terjual = 0.
         $products = Product::query()

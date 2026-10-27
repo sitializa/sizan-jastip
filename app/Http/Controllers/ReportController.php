@@ -14,6 +14,7 @@ class ReportController extends Controller
         $rows = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.payment_status', 'sudah')
+            ->whereNull('orders.deleted_at')
             ->selectRaw("
                 DATE_FORMAT(orders.order_date, '%Y-%m') as bulan,
                 COUNT(DISTINCT orders.id) as jumlah_order,
