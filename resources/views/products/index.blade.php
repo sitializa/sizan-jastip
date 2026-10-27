@@ -16,6 +16,12 @@
             @endforeach
         </select>
 
+        <select name="stok" style="width: auto;">
+            <option value="">Semua stok</option>
+            <option value="ada" @selected($stock === 'ada')>Masih ada sisa</option>
+            <option value="habis" @selected($stock === 'habis')>Habis (stok 0)</option>
+        </select>
+
         <label style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
             <input type="checkbox" name="cek" value="1" style="width: auto;" @checked($onlyCheck)>
             ⚠ Perlu dicek
@@ -23,12 +29,12 @@
 
         <button type="submit">Cari</button>
 
-        @if ($search !== '' || $category || $onlyCheck)
+        @if ($search !== '' || $category || $onlyCheck || $stock)
             <a href="{{ route('products.index') }}">Reset</a>
         @endif
     </form>
 
-    @if ($search !== '' || $category || $onlyCheck)
+    @if ($search !== '' || $category || $onlyCheck || $stock)
         <p>Ditemukan {{ $products->total() }} produk.</p>
     @endif
 
@@ -58,7 +64,13 @@
                     <td>{{ $product->category }}</td>
                     <td>Rp {{ number_format($product->cost_price, 0, ',', '.') }}</td>
                     <td>Rp {{ number_format($product->sell_price, 0, ',', '.') }}</td>
-                    <td>{{ $product->stock }}</td>
+                    <td>
+                        @if ($product->stock <= 0)
+                            <span class="error"><strong>Habis</strong></span>
+                        @else
+                            {{ $product->stock }}
+                        @endif
+                    </td>
                     <td>{{ $product->expired_date?->format('d/m/Y') ?? '-' }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product) }}">Ubah</a>
@@ -73,7 +85,7 @@
             @empty
                 <tr>
                     <td colspan="8">
-                        {{ ($search !== '' || $category || $onlyCheck) ? 'Tidak ada produk yang cocok.' : 'Belum ada produk.' }}
+                        {{ ($search !== '' || $category || $onlyCheck || $stock) ? 'Tidak ada produk yang cocok.' : 'Belum ada produk.' }}
                     </td>
                 </tr>
             @endforelse

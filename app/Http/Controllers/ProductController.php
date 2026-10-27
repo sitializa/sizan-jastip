@@ -19,6 +19,12 @@ class ProductController extends Controller
         $category  = $request->query('kategori');
         $onlyCheck = $request->boolean('cek');
 
+        // Filter stok: "ada" = masih ada sisa, "habis" = stok 0. Selain itu diabaikan.
+        $stock = $request->query('stok');
+        if (! in_array($stock, ['ada', 'habis'], true)) {
+            $stock = null;
+        }
+
         $products = Product::query()
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -28,6 +34,8 @@ class ProductController extends Controller
             })
             ->when($category, fn ($query) => $query->where('category', $category))
             ->when($onlyCheck, fn ($query) => $query->where('needs_check', true))
+            ->when($stock === 'ada', fn ($query) => $query->where('stock', '>', 0))
+            ->when($stock === 'habis', fn ($query) => $query->where('stock', '<=', 0))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -37,6 +45,7 @@ class ProductController extends Controller
             'search'     => $search,
             'category'   => $category,
             'onlyCheck'  => $onlyCheck,
+            'stock'      => $stock,
             'categories' => self::CATEGORIES,
         ]);
     }
