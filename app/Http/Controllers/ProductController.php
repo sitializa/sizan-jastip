@@ -15,12 +15,11 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $search   = trim((string) $request->query('q', ''));
-        $category = $request->query('kategori');
+        $search    = trim((string) $request->query('q', ''));
+        $category  = $request->query('kategori');
+        $onlyCheck = $request->boolean('cek');
 
         $products = Product::query()
-            // Cari di nama ATAU brand. Dibungkus satu kelompok supaya
-            // filter kategori di bawahnya tetap berlaku untuk keduanya.
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -28,14 +27,16 @@ class ProductController extends Controller
                 });
             })
             ->when($category, fn ($query) => $query->where('category', $category))
+            ->when($onlyCheck, fn ($query) => $query->where('needs_check', true))
             ->latest()
             ->paginate(10)
-            ->withQueryString(); // supaya kata kunci ikut terbawa saat pindah halaman
+            ->withQueryString();
 
         return view('products.index', [
             'products'   => $products,
             'search'     => $search,
             'category'   => $category,
+            'onlyCheck'  => $onlyCheck,
             'categories' => self::CATEGORIES,
         ]);
     }
@@ -100,6 +101,7 @@ class ProductController extends Controller
             'sell_price'   => ['required', 'integer', 'min:0'],
             'stock'        => ['required', 'integer', 'min:0'],
             'expired_date' => ['nullable', 'date'],
+            'needs_check'  => ['nullable', 'boolean'],
         ]);
     }
 }

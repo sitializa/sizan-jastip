@@ -87,4 +87,14 @@
     </table>
 
     <p><a href="{{ route('orders.index') }}">&larr; Kembali</a></p>
+
+    <hr>
+    <form method="POST" action="{{ route('orders.destroy', $order) }}"
+          onsubmit="return confirm('{{ $order->payment_status === 'sudah'
+              ? 'Order ini SUDAH DIBAYAR. Yakin hapus? Stok dikembalikan dan penjualannya ikut hilang dari laporan.'
+              : 'Hapus order ini? Stok produk akan dikembalikan.' }}')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" style="background: #b8325a;">Hapus order</button>
+    </form>
 @endsection

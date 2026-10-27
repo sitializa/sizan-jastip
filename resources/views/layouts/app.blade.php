@@ -10,6 +10,7 @@
     <h1>Sizan Jastip</h1>
     <nav class="menu">
         <a href="{{ route('products.index') }}" @class(['active' => request()->routeIs('products.*')])>Produk</a>
+        <a href="{{ route('recap.products') }}" @class(['active' => request()->routeIs('recap.*')])>Rekap</a>
         <a href="{{ route('customers.index') }}" @class(['active' => request()->routeIs('customers.*')])>Customer</a>
         <a href="{{ route('orders.index') }}" @class(['active' => request()->routeIs('orders.*')])>Order</a>
         <a href="{{ route('suppliers.index') }}" @class(['active' => request()->routeIs('suppliers.*')])>Supplier</a>

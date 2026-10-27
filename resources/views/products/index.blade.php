@@ -6,7 +6,6 @@
     <h2>Daftar Produk</h2>
     <a href="{{ route('products.create') }}">+ Tambah Produk</a>
 
-    {{-- Form pencarian: method GET supaya kata kuncinya muncul di alamat URL --}}
     <form method="GET" action="{{ route('products.index') }}" style="margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
         <input type="text" name="q" value="{{ $search }}" placeholder="Cari nama atau brand..." style="max-width: 280px;">
 
@@ -17,14 +16,19 @@
             @endforeach
         </select>
 
+        <label style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
+            <input type="checkbox" name="cek" value="1" style="width: auto;" @checked($onlyCheck)>
+            ⚠ Perlu dicek
+        </label>
+
         <button type="submit">Cari</button>
 
-        @if ($search !== '' || $category)
+        @if ($search !== '' || $category || $onlyCheck)
             <a href="{{ route('products.index') }}">Reset</a>
         @endif
     </form>
 
-    @if ($search !== '' || $category)
+    @if ($search !== '' || $category || $onlyCheck)
         <p>Ditemukan {{ $products->total() }} produk.</p>
     @endif
 
@@ -43,8 +47,13 @@
         </thead>
         <tbody>
             @forelse ($products as $product)
-                <tr>
-                    <td>{{ $product->name }}</td>
+                <tr @style(['background: #fff6e0' => $product->needs_check])>
+                    <td>
+                        @if ($product->needs_check)
+                            <span title="Cek lagi nanti" style="color: #d97706;">⚠</span>
+                        @endif
+                        {{ $product->name }}
+                    </td>
                     <td>{{ $product->brand ?? '-' }}</td>
                     <td>{{ $product->category }}</td>
                     <td>Rp {{ number_format($product->cost_price, 0, ',', '.') }}</td>
@@ -64,7 +73,7 @@
             @empty
                 <tr>
                     <td colspan="8">
-                        {{ ($search !== '' || $category) ? 'Tidak ada produk yang cocok.' : 'Belum ada produk.' }}
+                        {{ ($search !== '' || $category || $onlyCheck) ? 'Tidak ada produk yang cocok.' : 'Belum ada produk.' }}
                     </td>
                 </tr>
             @endforelse

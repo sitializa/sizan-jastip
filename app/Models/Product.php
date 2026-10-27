@@ -14,10 +14,12 @@ class Product extends Model
         'sell_price',
         'stock',
         'expired_date',
+        'needs_check',
     ];
 
     protected $casts = [
         'expired_date' => 'date',
+        'needs_check'  => 'boolean',
     ];
 
     // Sisa hari sampai expired: positif = masih ada waktu, 0 = hari ini,

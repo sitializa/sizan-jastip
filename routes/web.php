@@ -8,7 +8,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
-  use App\Http\Controllers\DailySalesController;
+use App\Http\Controllers\DailySalesController;
+use App\Http\Controllers\ProductRecapController;
 
 Route::get('/', function () {
     return redirect()->route('products.index');
@@ -21,7 +22,8 @@ Route::resource('products', ProductController::class)->except('show');
 Route::resource('customers', CustomerController::class)->except('show');
 Route::resource('suppliers', SupplierController::class)->except('show');
 Route::resource('purchases', PurchaseController::class)->only(['index', 'create', 'store', 'show']);
-Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
+Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 Route::patch('orders/{order}/tracking', [OrderController::class, 'updateTracking'])->name('orders.tracking');
 Route::patch('orders/{order}/shipping', [OrderController::class, 'updateShipping'])->name('orders.shipping');
+  Route::get('/rekap-produk', [ProductRecapController::class, 'index'])->name('recap.products');
 Route::patch('orders/{order}/payment', [OrderController::class, 'updatePayment'])->name('orders.payment');

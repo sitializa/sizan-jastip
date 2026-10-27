@@ -40,6 +40,14 @@
 </label>
 @error('expired_date') <div class="error">{{ $message }}</div> @enderror
 
+{{-- Hidden 0 memastikan nilai tetap terkirim (false) saat kotak tidak dicentang --}}
+<input type="hidden" name="needs_check" value="0">
+<label style="display: flex; align-items: center; gap: 8px;">
+    <input type="checkbox" name="needs_check" value="1" style="width: auto;"
+           @checked(old('needs_check', $product->needs_check ?? false))>
+    ⚠ Cek lagi nanti
+</label>
+
 <br>
 <button type="submit">Simpan</button>
 <a href="{{ route('products.index') }}">Batal</a>

@@ -12,28 +12,27 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-   public function index(Request $request)
-{
-    $search = trim((string) $request->query('q', ''));
+    public function index(Request $request)
+    {
+        $search = trim((string) $request->query('q', ''));
 
-    $orders = Order::with(['customer', 'items'])
-        // whereHas = "hanya order yang customer-nya memenuhi syarat ini".
-        // Nama ATAU nomor HP dibungkus satu kelompok supaya orWhere tidak bocor.
-        ->when($search !== '', function ($query) use ($search) {
-            $query->whereHas('customer', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            });
-        })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString(); // supaya kata kunci ikut terbawa saat pindah halaman
+        $orders = Order::with(['customer', 'items'])
+            // Nama ATAU nomor HP customer, dibungkus satu kelompok.
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereHas('customer', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
-    return view('orders.index', [
-        'orders' => $orders,
-        'search' => $search,
-    ]);
-}
+        return view('orders.index', [
+            'orders' => $orders,
+            'search' => $search,
+        ]);
+    }
 
     public function create()
     {
@@ -91,7 +90,7 @@ class OrderController extends Controller
                 }
             }
 
-            // 2. Customer: pakai yang dipilih, atau buat baru dari nama (dan no. HP kalau diisi).
+            // 2. Customer: pakai yang dipilih, atau buat baru dari nama.
             $customerId = $data['customer_id'] === 'new'
                 ? Customer::create([
                     'name'  => $data['new_customer_name'],
@@ -134,16 +133,44 @@ class OrderController extends Controller
         return view('orders.show', compact('order'));
     }
 
+    public function destroy(Order $order)
+    {
+        // Barang yang sudah dikirim tidak bisa "dikembalikan" ke stok.
+        if ($order->shipping_status === 'sudah') {
+            return redirect()->route('orders.show', $order)
+                ->with('error', 'Order yang sudah dikirim tidak bisa dihapus. Kalau memang salah catat, hilangkan centang "Sudah dikirim" dulu.');
+        }
+
+        $id = $order->id;
+
+        // Satu paket: stok kembali dan order terhapus berhasil semua atau batal semua.
+        DB::transaction(function () use ($order) {
+            $items = $order->items()->get();
+
+            $products = Product::whereIn('id', $items->pluck('product_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($items as $item) {
+                $products[$item->product_id]->increment('stock', $item->qty);
+            }
+
+            // order_items ikut terhapus otomatis (cascadeOnDelete di migration).
+            $order->delete();
+        });
+
+        return redirect()->route('orders.index')
+            ->with('success', "Order #{$id} dihapus dan stok produk dikembalikan.");
+    }
+
     public function updateTracking(Request $request, Order $order)
     {
         $data = $request->validate([
             'tracking_number' => [
-                // nullable: resi boleh dikosongkan (diisi nanti kalau sudah ada).
                 'nullable',
                 'string',
                 'max:255',
-                // ignore: supaya order ini tidak dianggap "kembar" dengan dirinya sendiri
-                // kalau resi yang sama disimpan ulang.
                 Rule::unique('orders', 'tracking_number')->ignore($order->id),
             ],
         ]);
@@ -156,7 +183,6 @@ class OrderController extends Controller
 
     public function updateShipping(Request $request, Order $order)
     {
-        // boolean(): membaca nilai 1/0 dari kotak centang menjadi true/false.
         $shipped = $request->boolean('shipped');
 
         $order->update([
