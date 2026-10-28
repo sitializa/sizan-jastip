@@ -5,7 +5,10 @@
 @section('content')
     <h2>Order #{{ $order->id }}</h2>
 
-    <p><a href="{{ route('orders.invoice', $order) }}" target="_blank">Cetak Invoice</a></p>
+    <p>
+    <a href="{{ route('orders.invoice', $order) }}" target="_blank">Cetak Invoice (order ini)</a> |
+    <a href="{{ route('customers.invoice', $order->customer) }}" target="_blank">Invoice semua order customer ini</a>
+</p>
 
     <div style="margin: 16px 0;">
         Customer: {{ $order->customer->phone }} {{ $order->customer->name ? '(' . $order->customer->name . ')' : '' }}<br>

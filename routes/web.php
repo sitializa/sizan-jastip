@@ -18,6 +18,7 @@ Route::get('/', function () {
 Route::get('/penjualan', [DailySalesController::class, 'index'])->name('sales.daily');
 Route::get('expired', ExpiredProductController::class)->name('expired.index');
 Route::get('/laporan', [ReportController::class, 'profit'])->name('reports.profit');
+Route::get('/customers/{customer}/invoice', [InvoiceController::class, 'customer'])->name('customers.invoice');
 Route::get('/orders/{order}/invoice', [InvoiceController::class, 'show'])->name('orders.invoice');
 Route::resource('products', ProductController::class)->except('show');
 Route::resource('customers', CustomerController::class)->except('show');

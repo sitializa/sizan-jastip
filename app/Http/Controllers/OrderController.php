@@ -90,13 +90,23 @@ class OrderController extends Controller
                 }
             }
 
-            // 2. Customer: pakai yang dipilih, atau buat baru dari nama.
-            $customerId = $data['customer_id'] === 'new'
-                ? Customer::create([
-                    'name'  => $data['new_customer_name'],
-                    'phone' => $data['new_customer_phone'] ?? null,
-                ])->id
-                : $data['customer_id'];
+            // 2. Customer: pakai yang dipilih, atau customer baru.
+            //    Kalau nomor HP kosong dan sudah ada customer dengan nama yang sama persis,
+            //    pakai yang itu supaya riwayat ordernya tidak terpecah.
+            $customerId = $data['customer_id'];
+
+            if ($customerId === 'new') {
+                $name  = trim($data['new_customer_name']);
+                $phone = trim((string) ($data['new_customer_phone'] ?? ''));
+                $phone = $phone === '' ? null : $phone;
+
+                $existing = $phone === null
+                    ? Customer::whereNull('phone')->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first()
+                    : null;
+
+                $customerId = $existing?->id
+                    ?? Customer::create(['name' => $name, 'phone' => $phone])->id;
+            }
 
             // 3. Simpan order
             $order = Order::create([

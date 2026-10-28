@@ -17,10 +17,11 @@
         <tbody>
             @forelse ($customers as $customer)
                 <tr>
-                    <td>{{ $customer->phone }}</td>
+                    <td>{{ $customer->phone ?? '-' }}</td>
                     <td>{{ $customer->name ?? '-' }}</td>
                     <td>
                         <a href="{{ route('customers.edit', $customer) }}">Ubah</a>
+                        <a href="{{ route('customers.invoice', $customer) }}" target="_blank">Invoice</a>
                         <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display:inline"
                               onsubmit="return confirm('Hapus customer ini?')">
                             @csrf

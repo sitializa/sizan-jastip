@@ -35,8 +35,8 @@
             print-color-adjust: exact;
         }
 
-        .actions { margin-bottom: 16px; }
-        .actions a { color: var(--pink-500); text-decoration: none; margin-left: 8px; }
+        .actions { margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .actions a { color: var(--pink-500); text-decoration: none; }
         .actions button {
             background: var(--pink-400); color: #fff; border: 0;
             padding: 7px 14px; border-radius: 8px; font: inherit; cursor: pointer;
@@ -91,6 +91,7 @@
     <div class="actions">
         <button type="button" onclick="window.print()">Cetak / Simpan PDF</button>
         <a href="{{ route('orders.show', $order) }}">&larr; Kembali ke order</a>
+        <a href="{{ route('customers.invoice', $order->customer) }}">Rekap semua order customer ini</a>
     </div>
 
     <div class="header">
@@ -110,7 +111,7 @@
     <p>
         <strong>Kepada:</strong><br>
         {{ $order->customer->name ?? '-' }}<br>
-        {{ $order->customer->phone }}
+        {{ $order->customer->phone ?? '-' }}
     </p>
 
     <table>
