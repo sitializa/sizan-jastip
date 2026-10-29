@@ -3,15 +3,17 @@
 @section('title', 'Order #' . $order->id)
 
 @section('content')
+    <p style="margin-bottom: 4px;"><a href="{{ route('orders.index') }}">&larr; Kembali</a></p>
+
     <h2>Order #{{ $order->id }}</h2>
 
     <p>
-    <a href="{{ route('orders.invoice', $order) }}" target="_blank">Cetak Invoice (order ini)</a> |
-    <a href="{{ route('customers.invoice', $order->customer) }}" target="_blank">Invoice semua order customer ini</a>
-</p>
+        <a href="{{ route('orders.invoice', $order) }}" target="_blank">Cetak Invoice (order ini)</a> |
+        <a href="{{ route('customers.invoice', $order->customer) }}" target="_blank">Invoice semua order customer ini</a>
+    </p>
 
     <div style="margin: 16px 0;">
-        Customer: {{ $order->customer->phone }} {{ $order->customer->name ? '(' . $order->customer->name . ')' : '' }}<br>
+        Customer: {{ $order->customer->name ?? '-' }}{{ $order->customer->phone ? ' (' . $order->customer->phone . ')' : '' }}<br>
         Tanggal: {{ $order->order_date->format('d/m/Y') }}
 
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -88,8 +90,6 @@
             </tr>
         </tfoot>
     </table>
-
-    <p><a href="{{ route('orders.index') }}">&larr; Kembali</a></p>
 
     <hr>
     <form method="POST" action="{{ route('orders.destroy', $order) }}"
