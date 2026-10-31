@@ -6,6 +6,16 @@
     <h2>Pivot Pesanan</h2>
     <p>Pesanan siapa saja yang sudah dikirim, belum dikirim, sudah dibayar, belum dibayar, dan produk dipesan oleh siapa. Order di Arsip tidak ikut dihitung.</p>
 
+    <style>
+        .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .pill.ok { color: #1e6b3c; background: #e6f6ec; }
+        .pill.no { color: #b8325a; background: #fbe7ee; }
+        .detail-row td { background: #fffafc; text-align: left; }
+        .detail-order { margin-bottom: 14px; }
+        .detail-order table { margin-top: 6px; }
+        .btn-small { padding: 4px 10px; font-size: 13px; }
+    </style>
+
     <form method="GET" action="{{ route('pivot.index') }}" style="margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
         <input type="text" name="q" value="{{ $search }}" placeholder="Cari nama, no. HP, atau produk..." style="max-width: 300px;">
         <button type="submit">Cari</button>
@@ -28,6 +38,11 @@
         <a href="#belum-dibayar">Belum dibayar</a> |
         <a href="#per-customer">Per customer</a> |
         <a href="#per-produk">Per produk</a>
+    </p>
+
+    <p>
+        <button type="button" class="btn-small" id="open-all">Buka semua rincian</button>
+        <button type="button" class="btn-small" id="close-all">Tutup semua rincian</button>
     </p>
 
     {{-- 1. Matriks bayar x kirim --}}
@@ -60,7 +75,7 @@
         </tbody>
     </table>
 
-    {{-- 2. Empat daftar customer --}}
+    {{-- 2. Empat daftar customer, rincian dibuka lewat tombol di kolom Aksi --}}
     @foreach ($sections as $s)
         <h3 id="{{ $s['id'] }}" style="margin-top: 28px;">
             {{ $s['title'] }}
@@ -73,13 +88,12 @@
                     <th>Order</th>
                     <th>Pcs</th>
                     <th>Total</th>
-                    @if ($s['tagihan'])
-                        <th>Tagihan</th>
-                    @endif
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($s['groups'] as $g)
+                    @php $detailId = 'd-' . $s['id'] . '-' . $g->id; @endphp
                     <tr>
                         <td>{{ $g->name }}{{ $g->phone && $g->name !== $g->phone ? ' (' . $g->phone . ')' : '' }}</td>
                         <td>
@@ -90,14 +104,64 @@
                         </td>
                         <td>{{ $g->pcs }}</td>
                         <td>Rp {{ number_format($g->total, 0, ',', '.') }}</td>
-                        @if ($s['tagihan'])
-                            <td>
+                        <td>
+                            <button type="button" class="btn-small" data-toggle="{{ $detailId }}">Rincian</button>
+                            @if ($s['tagihan'])
                                 <a href="{{ route('customers.invoice', ['customer' => $g->id, 'status' => 'belum']) }}" target="_blank">Tagihan</a>
-                            </td>
-                        @endif
+                            @endif
+                        </td>
+                    </tr>
+
+                    {{-- Baris rincian: tersembunyi sampai tombol Rincian diklik --}}
+                    <tr class="detail-row" id="{{ $detailId }}" style="display: none;">
+                        <td colspan="5">
+                            @foreach ($g->orders as $o)
+                                <div class="detail-order">
+                                    <strong><a href="{{ route('orders.show', $o) }}">Order #{{ $o->id }}</a></strong>
+                                    &middot; {{ $o->order_date->format('d/m/Y') }}
+                                    <span class="pill {{ $o->payment_status === 'sudah' ? 'ok' : 'no' }}">
+                                        {{ $o->payment_status === 'sudah' ? 'Lunas' : 'Belum dibayar' }}
+                                    </span>
+                                    <span class="pill {{ $o->shipping_status === 'sudah' ? 'ok' : 'no' }}">
+                                        {{ $o->shipping_status === 'sudah' ? 'Sudah dikirim' : 'Belum dikirim' }}
+                                    </span>
+                                    @if ($o->tracking_number)
+                                        <small>&middot; Resi: {{ $o->tracking_number }}</small>
+                                    @endif
+
+                                    <table>
+                                        <thead>
+                                            <tr><th>Produk</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($o->items as $item)
+                                                <tr>
+                                                    <td>{{ $item->product->name }}{{ $item->product->brand ? ' (' . $item->product->brand . ')' : '' }}</td>
+                                                    <td>{{ $item->qty }}</td>
+                                                    <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                                                    <td>Rp {{ number_format($item->qty * $item->price, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th colspan="3">Total order ini</th>
+                                                <th>Rp {{ number_format($o->total, 0, ',', '.') }}</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            @endforeach
+
+                            <div>
+                                <a href="{{ route('customers.invoice', $g->id) }}" target="_blank">Invoice semua order customer ini</a>
+                                |
+                                <a href="{{ route('customers.invoice', ['customer' => $g->id, 'status' => 'belum']) }}" target="_blank">Tagihan belum dibayar</a>
+                            </div>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="{{ $s['tagihan'] ? 5 : 4 }}">Tidak ada.</td></tr>
+                    <tr><td colspan="5">Tidak ada.</td></tr>
                 @endforelse
             </tbody>
             @if ($s['groups']->isNotEmpty())
@@ -106,9 +170,7 @@
                         <th colspan="2">Total</th>
                         <th>{{ $s['groups']->sum('pcs') }}</th>
                         <th>Rp {{ number_format($s['groups']->sum('total'), 0, ',', '.') }}</th>
-                        @if ($s['tagihan'])
-                            <th></th>
-                        @endif
+                        <th></th>
                     </tr>
                 </tfoot>
             @endif
@@ -207,4 +269,28 @@
             @endforelse
         </tbody>
     </table>
+
+    <script>
+        // Tombol Rincian: buka atau tutup baris rincian milik customer itu.
+        function setDetail(row, open) {
+            row.style.display = open ? 'table-row' : 'none';
+            const btn = document.querySelector('[data-toggle="' + row.id + '"]');
+            if (btn) btn.textContent = open ? 'Tutup' : 'Rincian';
+        }
+
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-toggle]');
+            if (!btn) return;
+            const row = document.getElementById(btn.dataset.toggle);
+            setDetail(row, row.style.display === 'none');
+        });
+
+        document.getElementById('open-all').addEventListener('click', function () {
+            document.querySelectorAll('.detail-row').forEach(r => setDetail(r, true));
+        });
+
+        document.getElementById('close-all').addEventListener('click', function () {
+            document.querySelectorAll('.detail-row').forEach(r => setDetail(r, false));
+        });
+    </script>
 @endsection
