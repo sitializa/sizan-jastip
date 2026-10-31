@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\PivotController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\InvoiceController;
@@ -19,6 +20,7 @@ Route::get('/penjualan', [DailySalesController::class, 'index'])->name('sales.da
 Route::get('expired', ExpiredProductController::class)->name('expired.index');
 Route::get('/laporan', [ReportController::class, 'profit'])->name('reports.profit');
 Route::get('/customers/{customer}/invoice', [InvoiceController::class, 'customer'])->name('customers.invoice');
+Route::get('/pivot', [PivotController::class, 'index'])->name('pivot.index');
 Route::get('/orders/{order}/invoice', [InvoiceController::class, 'show'])->name('orders.invoice');
 Route::resource('products', ProductController::class)->except('show');
 Route::resource('customers', CustomerController::class)->except('show');
